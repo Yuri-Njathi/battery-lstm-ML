@@ -7,7 +7,18 @@ This module handles question addressing functionality including:
 - Data visualization for decision-making
 - Dashboard creation
 """
-
+import torch
+import numpy as np
+import random
+import os
+import pandas as pd
+import torch.nn.functional as F
+from torch.utils.data import DataLoader, TensorDataset
+import matplotlib.pyplot as plt
+from torch import nn
+import torch.optim.lr_scheduler as lr_scheduler
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+from typing import Callable, Optional
 from typing import Any, Union
 import pandas as pd
 import logging
@@ -28,7 +39,26 @@ logger = logging.getLogger(__name__)
 
 # Or if it's a statistical analysis
 # import scipy.stats
+def set_seed(seed=42):
+    """
+    Set all relevant random seeds to ensure full reproducibility.
+    """
+    # 1. Set basic seeds
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # if multiple GPUs
+    
+    # 2. Force deterministic behavior in cudnn
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False  # turn off auto-tuning
+    
+    # 3. Optional: make dataloaders deterministic
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':16:8'  # deterministic cublas (for CUDA >= 10.2)
 
+    print(f"✅ Reproducibility environment set with seed = {seed}")
 
 def analyze_data(data: Union[pd.DataFrame, Any]) -> dict[str, Any]:
     """
