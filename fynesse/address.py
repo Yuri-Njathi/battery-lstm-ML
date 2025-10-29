@@ -97,6 +97,38 @@ def get_x_y_lists(paths):
         y_list.append(y)
     return X_list,y_list
 
+def give_paths_get_loaders(paths,data_type,shuffle=False):
+    X_list, y_list = get_x_y_lists(paths)
+
+    if INPUT_SIZE == 1:
+        # Concatenate all X and y
+        X_1,y_1 = torch.cat(X_list, dim=0).squeeze(-1),torch.cat(y_list, dim=0).view(-1,INPUT_SIZE)
+    else:
+        X_1,y_1 = torch.cat(X_list, dim=0),torch.cat(y_list, dim=0).view(-1,INPUT_SIZE)
+    
+    print(f"X_{data_type} , y_{data_type} shapes : ",X_1.shape, y_1.shape)
+    
+    #DataLoader
+    print("load : ")
+    loader = DataLoader(TensorDataset(X_1, y_1), batch_size=32, shuffle=shuffle)
+    print(f"{data_type}loader lengths : ",loader.__len__())
+    return loader,X_1,y_1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def analyze_data(data: Union[pd.DataFrame, Any]) -> dict[str, Any]:
     """
     Address a particular question that arises from the data.
