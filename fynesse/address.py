@@ -39,6 +39,33 @@ logger = logging.getLogger(__name__)
 
 # Or if it's a statistical analysis
 # import scipy.stats
+
+# Set variables
+WINDOW_SIZE = 35
+model_type = ['lstm','seq2seq-lstm'][0]
+WINDOW_SIZES = [i for i in range (5,100,5)]
+print("WINDOW SIZES TO TEST : ",WINDOW_SIZES)
+cutoff_soh = 80.0
+# Set Computing Environment
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+INPUT_SIZE = len(model_columns)
+OUTPUT_SIZE = 1 #controls how many values the lstm outputs
+num_epochs = 80 #60
+batch_size = 32
+normalize_soh = False
+if normalize_soh:
+    soh_normalization_constant = 115.0 #115.0 may be better as it allows bounding between 0 and 1
+    cutoff_soh = cutoff_soh/soh_normalization_constant #set cutoff soh wrt to normalizer
+else:
+    soh_normalization_constant = 1.0
+    cutoff_soh = cutoff_soh/soh_normalization_constant #set cutoff soh wrt to normalizer
+
+print("Cutoff SoH : ",cutoff_soh)
+
+last_model_path = f'last_model_window_{WINDOW_SIZE}_model_{model_type}.pth'
+print("Last model window : ",last_model_path)
+
+
 def set_seed(seed=42):
     """
     Set all relevant random seeds to ensure full reproducibility.
