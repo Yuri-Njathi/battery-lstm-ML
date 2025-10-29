@@ -60,6 +60,43 @@ def set_seed(seed=42):
 
     print(f"✅ Reproducibility environment set with seed = {seed}")
 
+def df_to_X_y_tensor(df, window_size=5,output_size=1):
+    '''
+    Converts a time series into (X, y) tensors for LSTM training.
+    
+    X shape: (num_samples, window_size, 1)
+    y shape: (num_samples, 1)
+    '''
+    if isinstance(df, (pd.DataFrame, pd.Series)):
+        df_as_np = df.to_numpy()
+    else:
+        df_as_np = df  # Assume already numpy
+
+    X, y = [], []
+    for i in range(len(df_as_np) - window_size):
+        X.append([[val] for val in df_as_np[i:i+window_size]])
+        y.append([df_as_np[i + window_size:i + window_size+output_size]])
+    X,y = np.array(X),np.array(y)
+    X_tensor = torch.tensor(X, dtype=torch.float32)#.squeeze()
+    y_tensor = torch.tensor(y, dtype=torch.float32)#.squeeze()
+    return X_tensor, y_tensor
+
+def get_x_y_lists(paths):
+    X_list,y_list = [],[]
+    for path in paths:
+        print(path)
+        df = pd.read_csv(path)
+        df['Cycle number'] = df['Cycle number']
+        df['rul'] = df['rul']
+        #normalize SoH
+        df['SoH'] =  df['SoH']/soh_normalization_constant
+        df.index = df['Cycle number']
+        SoH = df[model_columns]
+        X, y = df_to_X_y_tensor(SoH, window_size=WINDOW_SIZE,output_size=OUTPUT_SIZE)
+        X_list.append(X)
+        y_list.append(y)
+    return X_list,y_list
+
 def analyze_data(data: Union[pd.DataFrame, Any]) -> dict[str, Any]:
     """
     Address a particular question that arises from the data.
